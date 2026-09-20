@@ -1,0 +1,8 @@
+<!doctype html>
+<html>
+  <head><title>DevOps Portfolio</title></head>
+  <body>
+    <h1>Configured by Ansible</h1>
+    <p>Environment: {{ ansible_facts.env.ENVIRONMENT | default('demo') }}</p>
+  </body>
+</html>

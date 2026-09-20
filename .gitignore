@@ -1,0 +1,26 @@
+# Secrets / local environment
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*.p12
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Generated output
+reports/
+artifacts/

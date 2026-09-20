@@ -1,0 +1,48 @@
+name: Multi-Environment Deployment Demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options: [dev, qa, sit, uat, perf, prod]
+      strategy:
+        description: Deployment strategy
+        required: true
+        type: choice
+        options: [rolling, incremental, blue-green]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pre-deployment validation
+        run: bash scripts/pre-deploy-check.sh
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show deployment plan
+        run: |
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Strategy: ${{ inputs.strategy }}"
+          echo "Secrets are intentionally not printed."
+      - name: Deployment placeholder
+        run: echo "Replace this step with Azure CLI / kubectl / Fabric deployment commands."
+
+  post-deploy:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Post-deployment validation
+        run: bash scripts/post-deploy-check.sh

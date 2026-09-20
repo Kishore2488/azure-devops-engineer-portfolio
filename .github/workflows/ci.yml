@@ -1,0 +1,42 @@
+name: Portfolio CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate YAML files
+        shell: bash
+        run: |
+          python - <<'PY'
+          import pathlib
+          import sys
+          try:
+              import yaml
+          except ImportError:
+              print('PyYAML unavailable; installing for validation')
+              raise SystemExit(1)
+          files = list(pathlib.Path('.').rglob('*.yml')) + list(pathlib.Path('.').rglob('*.yaml'))
+          for f in files:
+              with f.open() as fh:
+                  yaml.safe_load(fh)
+              print(f'OK: {f}')
+          PY
+
+      - name: Check for obvious secret patterns
+        shell: bash
+        run: |
+          ! grep -RInE '(AKIA[0-9A-Z]{16}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|password\s*[:=]\s*["'"'][^"'"']+["'"'])' \
+            --exclude-dir=.git .

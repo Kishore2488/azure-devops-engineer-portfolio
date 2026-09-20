@@ -1,0 +1,4 @@
+---
+web_package_name: nginx
+web_service_name: nginx
+web_document_root: /var/www/html
