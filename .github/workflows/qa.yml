@@ -1,0 +1,89 @@
+name: Deploy to QA
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "azure/**"
+      - "kubernetes/**"
+      - "ansible/**"
+      - "fabric/**"
+      - "scripts/**"
+      - ".github/workflows/qa.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: qa-deployment
+  cancel-in-progress: false
+
+env:
+  AZURE_LOCATION: ${{ vars.AZURE_LOCATION || 'eastus' }}
+  AKS_RESOURCE_GROUP: ${{ vars.AKS_RESOURCE_GROUP }}
+  AKS_CLUSTER_NAME: ${{ vars.AKS_CLUSTER_NAME }}
+  CONTAINER_IMAGE: ${{ vars.CONTAINER_IMAGE }}
+
+jobs:
+  validate:
+    name: Validate QA configuration
+    runs-on: ubuntu-latest
+    environment: qa
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Run repository checks
+        run: bash scripts/pre-deploy-check.sh
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Validate Kubernetes overlay
+        run: kubectl kustomize kubernetes/overlays/qa > /tmp/qa-manifests.yaml
+      - name: Sign in to Azure for template validation
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Validate Bicep template
+        uses: azure/cli@v2
+        with:
+          inlineScript: az bicep build --file azure/bicep/main.bicep --stdout > /dev/null
+
+  deploy:
+    name: Deploy to QA AKS
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: qa
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy QA infrastructure
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az deployment group create \
+              --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+              --template-file azure/bicep/main.bicep \
+              --parameters environment=qa location="$AZURE_LOCATION" keyVaultName="${{ vars.KEY_VAULT_NAME }}"
+      - name: Connect to QA AKS
+        uses: azure/aks-set-context@v4
+        with:
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+      - name: Apply QA manifests
+        run: kubectl apply -k kubernetes/overlays/qa
+      - name: Update deployment image
+        run: kubectl set image deployment/qa-portfolio-api api="$CONTAINER_IMAGE"
+      - name: Wait for rollout
+        run: kubectl rollout status deployment/qa-portfolio-api --timeout=180s
+      - name: Run post-deployment checks
+        run: bash scripts/post-deploy-check.sh
