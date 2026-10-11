@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: aks-demo
+spec:
+  selector: {app: aks-demo}
+  ports: [{port: 80, targetPort: 8000}]
+  type: ClusterIP
