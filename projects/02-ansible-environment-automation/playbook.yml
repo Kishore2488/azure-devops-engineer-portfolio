@@ -1,0 +1,5 @@
+- name: Configure web application servers
+  hosts: webservers
+  become: true
+  roles:
+    - webserver
