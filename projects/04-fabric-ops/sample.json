@@ -1,0 +1,1 @@
+{"workspace":"portfolio-demo","environment":"UAT","capacity_percent":61,"tables":[{"name":"customer","synchronized":true},{"name":"orders","synchronized":true}]}
