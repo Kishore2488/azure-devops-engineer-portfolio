@@ -63,8 +63,8 @@ See [`docs/architecture/portfolio-architecture.md`](docs/architecture/portfolio-
 ## Security principles
 
 - Never commit credentials, tokens, private keys or real connection strings.
-- Use Azure Key Vault / GitHub environment secrets for runtime secrets.
-- Use managed identities or federated identity where supported.
+- Keep cloud credentials out of the repository.
+- Use placeholders and local/mock validation for portfolio demonstrations unless cloud credentials are explicitly configured.
 - Keep deployment permissions scoped to the required environment.
 - Treat this repository as public-safe: examples use placeholders only.
 
@@ -77,6 +77,7 @@ See [`docs/architecture/portfolio-architecture.md`](docs/architecture/portfolio-
 5. Create GitHub Environments: `dev`, `qa`, `sit`, `uat`, `perf`, `prod`.
 6. Store cloud credentials as environment secrets or use OIDC/federated credentials.
 7. Require approval for production deployments.
+8. Keep the portfolio workflows runnable without Azure credentials; cloud authentication can be added later as an optional extension.
 
 ## Resume alignment
 
