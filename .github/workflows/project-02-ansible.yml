@@ -1,0 +1,17 @@
+name: Project 02 - Ansible Validation
+on:
+  push:
+    branches: [main, develop]
+    paths: [projects/02-ansible-real-server/**]
+  pull_request:
+    paths: [projects/02-ansible-real-server/**]
+permissions:
+  contents: read
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ansible/ansible-lint-action@main
+        with:
+          path: projects/02-ansible-real-server
