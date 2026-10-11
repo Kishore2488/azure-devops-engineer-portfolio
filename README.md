@@ -49,6 +49,18 @@ Runbooks and validation patterns for Fabric Lakehouse/Warehouse deployments, pos
 
 Repository governance patterns including CODEOWNERS, dependency/secret scanning, least-privilege access and secure secret handling.
 
+## Five showcase projects
+
+The `/projects` directory contains five recruiter-facing, credential-free demonstrations:
+
+1. **Multi-Environment CI/CD Platform** — GitHub Actions, release promotion and deployment strategies.
+2. **Ansible Environment Automation** — reusable roles, idempotent configuration and environment standardization.
+3. **AKS Kubernetes Deployment** — rolling updates, health probes and resource controls.
+4. **Microsoft Fabric Deployment Operations** — release validation, synchronization checks and capacity monitoring.
+5. **DevSecOps GitHub Governance** — least-privilege workflows, CODEOWNERS and credential-pattern checks.
+
+Each project contains runnable or locally verifiable artifacts and is designed to demonstrate engineering capability without exposing cloud credentials.
+
 ## Certifications
 
 - AWS Certified DevOps Engineer
