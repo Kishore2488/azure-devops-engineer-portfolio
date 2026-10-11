@@ -1,0 +1,10 @@
+{
+  "release": "portfolio-demo-1.0",
+  "environment": "UAT",
+  "capacity_percent": 62,
+  "tables": [
+    {"name": "customer", "synchronized": true},
+    {"name": "orders", "synchronized": true},
+    {"name": "inventory", "synchronized": true}
+  ]
+}
