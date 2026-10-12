@@ -1,0 +1,96 @@
+name: Portfolio Quality Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "styles.css"
+      - "script.js"
+      - "projects/**"
+      - ".github/workflows/portfolio-quality.yml"
+  pull_request:
+    paths:
+      - "index.html"
+      - "styles.css"
+      - "script.js"
+      - "projects/**"
+      - ".github/workflows/portfolio-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portfolio-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  local-validation:
+    name: Tests and internal-link validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: projects/01-cicd-fastapi-app/requirements.txt
+
+      - name: Install application test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r projects/01-cicd-fastapi-app/requirements.txt pytest httpx
+
+      - name: Test FastAPI project
+        working-directory: projects/01-cicd-fastapi-app
+        run: pytest -q
+
+      - name: Validate Microsoft Fabric release sample
+        working-directory: projects/04-fabric-ops
+        run: python validate.py sample.json
+
+      - name: Check local HTML links and assets
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import urlsplit, unquote
+
+          ROOT = Path(".").resolve()
+          class Links(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.targets = []
+              def handle_starttag(self, tag, attrs):
+                  for key, value in attrs:
+                      if key in {"href", "src"} and value:
+                          self.targets.append(value.strip())
+
+          pages = sorted([ROOT / "index.html", *ROOT.glob("projects/**/index.html")])
+          errors = []
+          checked = 0
+          for page in pages:
+              parser = Links()
+              parser.feed(page.read_text(encoding="utf-8"))
+              for raw in parser.targets:
+                  parsed = urlsplit(raw)
+                  if parsed.scheme or parsed.netloc or raw.startswith(("#", "data:")):
+                      continue
+                  path = unquote(parsed.path)
+                  if not path:
+                      continue
+                  target = (page.parent / path).resolve()
+                  if target.is_dir():
+                      target = target / "index.html"
+                  checked += 1
+                  if not target.is_file():
+                      errors.append(f"{page.relative_to(ROOT)} -> {raw}")
+          if errors:
+              print("\n".join(errors))
+              raise SystemExit(f"FAIL: {len(errors)} broken local links/assets")
+          print(f"PASS: checked {len(pages)} HTML pages and {checked} local links/assets")
+          PY
