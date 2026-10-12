@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ansible/ansible-lint-action@main
+      - uses: actions/setup-python@v5
         with:
-          path: projects/02-ansible-real-server
+          python-version: "3.12"
+      - run: pip install ansible-core ansible-lint
+      - run: ansible-lint projects/02-ansible-real-server
+      - run: ansible-playbook -i projects/02-ansible-real-server/inventory/dev.ini projects/02-ansible-real-server/site.yml --syntax-check
