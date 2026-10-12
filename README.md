@@ -82,9 +82,12 @@ Each project contains runnable or locally verifiable artifacts and is designed t
 
 Certification details and verification links should be added in [`docs/certifications/README.md`](docs/certifications/README.md).
 
-## Architecture
+## Operations and recruiter walkthrough
 
-See [`docs/architecture/portfolio-architecture.md`](docs/architecture/portfolio-architecture.md).
+- [Recruiter demo guide](docs/recruiter-guide.md) — a five-minute project walkthrough and safe local demo commands.
+- [Deployment incident runbook](docs/incident-runbook.md) — CI/CD, Kubernetes, registry and Fabric triage, recovery checks and post-incident review.
+- [Architecture overview](docs/architecture/portfolio-architecture.md) — high-level system design.
+
 
 ## Security principles
 
