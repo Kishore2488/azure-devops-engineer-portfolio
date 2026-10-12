@@ -30,7 +30,7 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p _site
-          cp index.html styles.css script.js _site/
+          cp index.html 404.html styles.css script.js _site/
           cp -r projects _site/
 
       - name: Validate portfolio project links
@@ -57,7 +57,7 @@ jobs:
                   target = target / "index.html"
               if not target.is_file():
                   raise SystemExit(f"Broken portfolio project link: {path}")
-          for required in ["index.html", "styles.css", "script.js"]:
+          for required in ["index.html", "404.html", "styles.css", "script.js"]:
               if not Path(required).is_file():
                   raise SystemExit(f"Missing site asset: {required}")
           print(f"PASS: validated {len(paths)} project links and required site assets")
