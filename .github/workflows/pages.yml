@@ -33,6 +33,36 @@ jobs:
           cp index.html styles.css script.js _site/
           cp -r projects _site/
 
+      - name: Validate portfolio project links
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          class Links(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.hrefs = []
+              def handle_starttag(self, tag, attrs):
+                  self.hrefs.extend(v for k, v in attrs if k == "href" and v)
+
+          parser = Links()
+          parser.feed(Path("index.html").read_text(encoding="utf-8"))
+          paths = [p for p in parser.hrefs if p.startswith("projects/")]
+          if len(paths) < 5:
+              raise SystemExit(f"Expected at least 5 project links, found {len(paths)}")
+          for path in paths:
+              target = Path(path)
+              if target.is_dir():
+                  target = target / "index.html"
+              if not target.is_file():
+                  raise SystemExit(f"Broken portfolio project link: {path}")
+          for required in ["index.html", "styles.css", "script.js"]:
+              if not Path(required).is_file():
+                  raise SystemExit(f"Missing site asset: {required}")
+          print(f"PASS: validated {len(paths)} project links and required site assets")
+          PY
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
