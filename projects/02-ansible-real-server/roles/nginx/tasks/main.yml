@@ -1,0 +1,19 @@
+- name: Install nginx
+  ansible.builtin.package:
+    name: nginx
+    state: present
+
+- name: Deploy application landing page
+  ansible.builtin.copy:
+    content: |
+      <!doctype html>
+      <html><body><h1>Deployed by Ansible</h1><p>Portfolio web server</p></body></html>
+    dest: /var/www/html/index.html
+    mode: "0644"
+  notify: Restart nginx
+
+- name: Ensure nginx is running and enabled
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
