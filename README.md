@@ -8,6 +8,7 @@
 [![Container build](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-03-container.yml/badge.svg?branch=main)](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-03-container.yml)
 [![Fabric validation](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-04-fabric.yml/badge.svg?branch=main)](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-04-fabric.yml)
 [![DevSecOps](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-05-security.yml/badge.svg?branch=main)](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-05-security.yml)
+[![Portfolio quality gate](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/portfolio-quality.yml/badge.svg?branch=main)](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/portfolio-quality.yml)
 
 > **Status honesty:** workflow badges show the latest GitHub Actions result. A passing test or image build is not proof that an application has been deployed to live cloud infrastructure. Azure/Fabric/AKS integrations require a configured target and runtime credentials; no secrets belong in this repository.
 
@@ -62,6 +63,8 @@ Repository governance patterns including CODEOWNERS, dependency/secret scanning,
 
 ## Five showcase projects
 
+[Recruiter guide: demo order, architecture, and honest deployment boundaries](docs/recruiter-guide.md)
+
 The `/projects` directory contains five recruiter-facing, credential-free demonstrations:
 
 1. **Multi-Environment CI/CD Platform** — GitHub Actions, release promotion and deployment strategies.
@@ -70,7 +73,7 @@ The `/projects` directory contains five recruiter-facing, credential-free demons
 4. **Microsoft Fabric Deployment Operations** — release validation, synchronization checks and capacity monitoring.
 5. **DevSecOps GitHub Governance** — least-privilege workflows, CODEOWNERS and credential-pattern checks.
 
-Each project contains runnable or locally verifiable artifacts and is designed to demonstrate engineering capability without exposing cloud credentials.
+Each project contains runnable or locally verifiable artifacts and is designed to demonstrate engineering capability without exposing cloud credentials. The Portfolio Quality Gate runs application tests, Fabric sample validation, and internal HTML-link checks on relevant pushes and pull requests.
 
 ## Certifications
 
