@@ -70,7 +70,7 @@ jobs:
                       if key in {"href", "src"} and value:
                           self.targets.append(value.strip())
 
-          pages = sorted([ROOT / "index.html", *ROOT.glob("projects/**/index.html")])
+          pages = sorted([ROOT / "index.html", ROOT / "404.html", *ROOT.glob("projects/**/index.html")])
           errors = []
           checked = 0
           for page in pages:
