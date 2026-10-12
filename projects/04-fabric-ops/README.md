@@ -1,21 +1,19 @@
-# 04 — Microsoft Fabric Deployment Operations
+# Project 04 — Microsoft Fabric Deployment Operations
 
-A real integration-ready Fabric operations project. It includes a REST client skeleton for authenticated workspace access plus local release validation.
+Includes local release validation and an integration-ready REST client for retrieving a Fabric workspace.
 
-## Local validation
+## Run the local validation
 ```bash
 python validate.py sample.json
 ```
 
-## Real Fabric integration
-Set runtime credentials only in your shell or CI secret store:
+## Connect to a Fabric workspace
+Set a valid Fabric API access token and workspace ID in the environment, never in source:
 ```bash
-export FABRIC_API_BASE="https://api.fabric.microsoft.com/v1"
-export FABRIC_TOKEN="<runtime-token>"
-export FABRIC_WORKSPACE_ID="<workspace-id>"
+# PowerShell
+$env:FABRIC_TOKEN = "<runtime-token>"
+$env:FABRIC_WORKSPACE_ID = "<workspace-id>"
 python api_client.py
 ```
-Never commit the token.
 
-## Demonstrates
-Fabric API integration, workspace-aware operations, release validation, table synchronization checks and capacity monitoring.
+The REST client requires an identity/token authorized for the Fabric API. The local validator runs without cloud credentials. A successful local check does not imply that a live Fabric tenant was accessed.
