@@ -4,16 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Venkata Kishore Vusa — Azure DevOps Engineer. 4+ years in Azure, GitHub Actions, CI/CD, Ansible, AKS, Microsoft Fabric and DevSecOps. Open to DevOps opportunities.">
+<meta name="theme-color" content="#070b10">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Venkata Kishore Vusa | Azure DevOps Engineer">
+<meta property="og:description" content="A hiring-focused DevOps portfolio with executable projects, GitHub Actions quality gates and practical deployment runbooks.">
+<meta property="og:url" content="https://kishore2488.github.io/azure-devops-engineer-portfolio/">
 <title>Venkata Kishore Vusa | Azure DevOps Engineer</title>
 <link rel="stylesheet" href="styles.css">
 <style>.project-link{display:inline-block;margin-top:17px;color:var(--accent);font-size:12px;font-weight:700;text-decoration:none}.project-link:hover{color:var(--text)}</style></head>
 <body>
+<a class="skip-link" href="#main-content">Skip to content</a>
 <header class="nav">
   <a class="brand" href="#top">kishore<span>.dev</span></a>
   <nav><a href="#skills">Skills</a><a href="#proof">Impact</a><a href="#work">Work</a><a href="#experience">Experience</a><a class="nav-hire" href="mailto:venkatakishorevusa@gmail.com?subject=DevOps%20Opportunity%20for%20Kishore">Hire me</a></nav>
 </header>
 
-<main id="top">
+<main id="top" tabindex="-1">
 <section class="hero">
   <div>
     <div class="availability"><span></span> OPEN TO DEVOPS / AZURE OPPORTUNITIES</div>
@@ -78,13 +84,26 @@
 </section>
 
 <section id="work" class="section">
-  <div class="section-title"><p class="eyebrow">SELECTED WORK</p><h2>See the engineering behind the resume.</h2></div>
+  <div class="section-title"><p class="eyebrow">SELECTED WORK</p><h2>See the engineering behind the resume.</h2><p class="muted">Filter the demos by skill area or search for a tool. Each card links to a project page and its source.</p></div>
+  <div class="project-controls" aria-label="Project filters">
+    <label class="project-search-label" for="project-search">Search projects</label>
+    <input id="project-search" class="project-search" type="search" placeholder="Try Ansible, Docker, Fabric…" autocomplete="off">
+    <div class="filter-buttons" role="group" aria-label="Filter projects by category">
+      <button class="filter-btn active" type="button" data-filter="all" aria-pressed="true">All projects</button>
+      <button class="filter-btn" type="button" data-filter="cicd" aria-pressed="false">CI/CD</button>
+      <button class="filter-btn" type="button" data-filter="automation" aria-pressed="false">Automation</button>
+      <button class="filter-btn" type="button" data-filter="kubernetes" aria-pressed="false">Kubernetes</button>
+      <button class="filter-btn" type="button" data-filter="data" aria-pressed="false">Data platform</button>
+      <button class="filter-btn" type="button" data-filter="security" aria-pressed="false">Security</button>
+    </div>
+    <p id="project-results" class="project-results" role="status" aria-live="polite">Showing 5 projects</p>
+  </div>
   <div class="work-grid">
-    <article class="work featured"><div class="number">01</div><div><span>CI/CD · GITHUB ACTIONS</span><h3>Production CI/CD FastAPI Service</h3><p>Runnable FastAPI service with automated tests, hardened Docker packaging and GitHub Actions CI.</p><div class="tags"><i>Python</i><i>FastAPI</i><i>Docker</i></div><a class="project-link" href="projects/01-cicd-fastapi-app/">Open demo & source ↗</a></div></article>
-    <article class="work"><div class="number">02</div><div><span>AUTOMATION · ANSIBLE</span><h3>Ansible Real Server Deployment</h3><p>Executable Ansible deployment that installs Nginx, publishes the application and manages the Linux service.</p><div class="tags"><i>Ansible</i><i>Linux</i><i>Nginx</i></div><a class="project-link" href="projects/02-ansible-real-server/">Open demo & source ↗</a></div></article>
-    <article class="work"><div class="number">03</div><div><span>KUBERNETES · AKS</span><h3>Containerized AKS Application</h3><p>Kubernetes deployment with rolling updates, readiness/liveness probes and resource requests and limits, ready for AKS validation.</p><div class="tags"><i>AKS</i><i>Kubernetes</i><i>Docker</i></div><a class="project-link" href="projects/03-aks-app/">Open demo & source ↗</a></div></article>
-    <article class="work"><div class="number">04</div><div><span>DATA PLATFORM · FABRIC</span><h3>Microsoft Fabric Deployment Operations</h3><p>Fabric REST integration skeleton plus release validation for workspace, synchronization and capacity checks.</p><div class="tags"><i>Microsoft Fabric</i><i>Python</i><i>REST API</i></div><a class="project-link" href="projects/04-fabric-ops/">Open demo & source ↗</a></div></article>
-    <article class="work"><div class="number">05</div><div><span>DEVSECOPS · GOVERNANCE</span><h3>DevSecOps Security Pipeline</h3><p>Executable Gitleaks, Trivy and dependency-review gates with least-privilege workflow permissions.</p><div class="tags"><i>Gitleaks</i><i>Trivy</i><i>Security</i></div><a class="project-link" href="projects/05-devsecops-pipeline/">Open demo & source ↗</a></div></article>
+    <article class="work featured" data-category="cicd" data-search="fastapi python tests docker github actions continuous integration api"><div class="number">01</div><div><span>CI/CD · GITHUB ACTIONS</span><h3>Production CI/CD FastAPI Service</h3><p>Runnable FastAPI service with automated tests, hardened Docker packaging and GitHub Actions CI.</p><div class="tags"><i>Python</i><i>FastAPI</i><i>Docker</i></div><a class="project-link" href="projects/01-cicd-fastapi-app/">Open demo & source ↗</a></div></article>
+    <article class="work" data-category="automation" data-search="ansible linux nginx configuration management idempotent server"><div class="number">02</div><div><span>AUTOMATION · ANSIBLE</span><h3>Ansible Real Server Deployment</h3><p>Executable Ansible deployment that installs Nginx, publishes the application and manages the Linux service.</p><div class="tags"><i>Ansible</i><i>Linux</i><i>Nginx</i></div><a class="project-link" href="projects/02-ansible-real-server/">Open demo & source ↗</a></div></article>
+    <article class="work" data-category="kubernetes" data-search="aks kubernetes docker container rolling updates probes"><div class="number">03</div><div><span>KUBERNETES · AKS</span><h3>Containerized AKS Application</h3><p>Kubernetes deployment with rolling updates, readiness/liveness probes and resource requests and limits, ready for AKS validation.</p><div class="tags"><i>AKS</i><i>Kubernetes</i><i>Docker</i></div><a class="project-link" href="projects/03-aks-app/">Open demo & source ↗</a></div></article>
+    <article class="work" data-category="data" data-search="microsoft fabric lakehouse warehouse python rest api synchronization"><div class="number">04</div><div><span>DATA PLATFORM · FABRIC</span><h3>Microsoft Fabric Deployment Operations</h3><p>Fabric REST integration skeleton plus release validation for workspace, synchronization and capacity checks.</p><div class="tags"><i>Microsoft Fabric</i><i>Python</i><i>REST API</i></div><a class="project-link" href="projects/04-fabric-ops/">Open demo & source ↗</a></div></article>
+    <article class="work" data-category="security" data-search="devsecops gitleaks trivy dependency review secret scanning security"><div class="number">05</div><div><span>DEVSECOPS · GOVERNANCE</span><h3>DevSecOps Security Pipeline</h3><p>Executable Gitleaks, Trivy and dependency-review gates with least-privilege workflow permissions.</p><div class="tags"><i>Gitleaks</i><i>Trivy</i><i>Security</i></div><a class="project-link" href="projects/05-devsecops-pipeline/">Open demo & source ↗</a></div></article>
   </div>
 </section>
 
