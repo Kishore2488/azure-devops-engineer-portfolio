@@ -1,5 +1,16 @@
 # Azure DevOps Engineer Portfolio
 
+**Live portfolio:** https://kishore2488.github.io/azure-devops-engineer-portfolio/
+
+[![Portfolio publishing](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/pages.yml/badge.svg?branch=main)](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/pages.yml)
+[![FastAPI CI](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-01-ci.yml/badge.svg?branch=main)](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-01-ci.yml)
+[![Ansible validation](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-02-ansible.yml/badge.svg?branch=main)](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-02-ansible.yml)
+[![Container build](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-03-container.yml/badge.svg?branch=main)](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-03-container.yml)
+[![Fabric validation](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-04-fabric.yml/badge.svg?branch=main)](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-04-fabric.yml)
+[![DevSecOps](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-05-security.yml/badge.svg?branch=main)](https://github.com/Kishore2488/azure-devops-engineer-portfolio/actions/workflows/project-05-security.yml)
+
+> **Status honesty:** workflow badges show the latest GitHub Actions result. A passing test or image build is not proof that an application has been deployed to live cloud infrastructure. Azure/Fabric/AKS integrations require a configured target and runtime credentials; no secrets belong in this repository.
+
 Production-style DevOps portfolio demonstrating the skills represented in my resume: Azure DevOps, GitHub Actions, YAML multi-stage CI/CD, Ansible, Kubernetes/AKS, Microsoft Fabric, Azure Key Vault, Microsoft Entra ID, RBAC, GitHub Advanced Security, monitoring, and AWS certifications.
 
 > **Portfolio goal:** demonstrate how I design, automate, secure, validate, deploy, and troubleshoot cloud workloads rather than simply listing technologies.
