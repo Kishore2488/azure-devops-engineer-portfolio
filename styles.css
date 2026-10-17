@@ -32,3 +32,15 @@
 .work[hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 @media(max-width:520px){.project-controls{padding:13px}.filter-btn{padding:7px 10px}}
+
+/* Portfolio intro video */
+.intro-video{padding-top:12px}
+.video-shell{max-width:980px;margin:30px auto 0;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#05090d;box-shadow:0 24px 80px rgba(0,0,0,.28)}
+.video-shell video{display:block;width:100%;aspect-ratio:16/9;background:#070b10}
+.video-meta{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:13px 18px;border-top:1px solid var(--line);font:11px ui-monospace,monospace;letter-spacing:.06em;color:var(--muted)}
+.video-meta span:first-child{color:var(--accent)}
+.video-meta i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:8px;box-shadow:0 0 10px rgba(85,230,177,.55)}
+.video-transcript{max-width:980px;margin:14px auto 0;border:1px solid var(--line);border-radius:10px;padding:15px 18px;color:var(--muted);background:var(--panel)}
+.video-transcript summary{cursor:pointer;color:var(--text);font-weight:600}
+.video-transcript p{max-width:82ch;margin:12px 0 0}
+@media(max-width:640px){.video-meta{font-size:10px}.video-shell{border-radius:10px}}
