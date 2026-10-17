@@ -9,6 +9,7 @@ on:
       - "script.js"
       - "projects/**"
       - "scripts/**"
+      - "assets/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
