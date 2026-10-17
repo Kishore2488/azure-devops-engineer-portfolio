@@ -8,6 +8,7 @@ on:
       - "styles.css"
       - "script.js"
       - "projects/**"
+      - "scripts/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -27,13 +28,41 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install video build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak
+          python -m pip install --upgrade pip pillow edge-tts
+          mkdir -p build _site/videos
+
+      - name: Generate professional male narration
+        shell: bash
+        run: |
+          VOICEOVER="I'm Venkata Kishore Vusa, an Azure DevOps and Cloud Engineer based in Hyderabad. I build secure, repeatable delivery pipelines with GitHub Actions, quality gates, and environment approvals. Across Azure and AWS, I use Ansible to automate infrastructure and Docker with Kubernetes to deliver consistent workloads. I also support Microsoft Fabric release operations, validating workspace readiness and data synchronization before deployments. My focus is practical DevSecOps, clear troubleshooting, and reliable releases—not just moving code, but helping teams ship with confidence. Explore my projects, runbooks, and automation on GitHub. Let's build a safer path from code to production."
+          if ! edge-tts --voice en-US-GuyNeural --rate=-4% --text "$VOICEOVER" --write-media build/narration.mp3; then
+            echo "::warning::Neural male voice service was unavailable; using local synthetic male voice as fallback."
+            espeak -v en+m3 -s 145 -w build/narration.wav "$VOICEOVER"
+            ffmpeg -y -loglevel error -i build/narration.wav build/narration.mp3
+          fi
+          test -s build/narration.mp3
+
+      - name: Render 45-second cinematic intro
+        run: |
+          python scripts/generate_intro.py
+          test -s _site/videos/kishore-intro.mp4
+          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 _site/videos/kishore-intro.mp4
+
       - name: Prepare static site
         run: |
-          mkdir -p _site
           cp index.html 404.html styles.css script.js _site/
           cp -r projects _site/
 
-      - name: Validate portfolio project links
+      - name: Validate portfolio project links and video asset
         run: |
           python - <<'PY'
           from html.parser import HTMLParser
@@ -43,8 +72,12 @@ jobs:
               def __init__(self):
                   super().__init__()
                   self.hrefs = []
+                  self.media = []
               def handle_starttag(self, tag, attrs):
-                  self.hrefs.extend(v for k, v in attrs if k == "href" and v)
+                  attrs = dict(attrs)
+                  self.hrefs.extend([attrs["href"]] if attrs.get("href") else [])
+                  if tag == "source" and attrs.get("src"):
+                      self.media.append(attrs["src"])
 
           parser = Links()
           parser.feed(Path("index.html").read_text(encoding="utf-8"))
@@ -60,7 +93,11 @@ jobs:
           for required in ["index.html", "404.html", "styles.css", "script.js"]:
               if not Path(required).is_file():
                   raise SystemExit(f"Missing site asset: {required}")
-          print(f"PASS: validated {len(paths)} project links and required site assets")
+          if "videos/kishore-intro.mp4" not in parser.media:
+              raise SystemExit("Portfolio intro video is not referenced by the page")
+          if not Path("_site/videos/kishore-intro.mp4").is_file():
+              raise SystemExit("Generated intro video is missing from Pages artifact")
+          print(f"PASS: validated {len(paths)} project links, required assets and intro video")
           PY
 
       - name: Upload Pages artifact
