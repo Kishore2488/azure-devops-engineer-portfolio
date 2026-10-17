@@ -90,6 +90,28 @@ def draw_frame(t):
         d.text((84, y + int((1-fade)*10)), line, font=f, fill=(*(WHITE if idx == 0 else BLUE), int(255*fade)))
         y += 75 if idx == 0 else 62
     d.text((88, y+12), scene["sub"], font=F_MED, fill=(*MUTED, int(255*fade)))
+    # Illustrated AI presenter avatar: stylized, clearly synthetic, not a real-person likeness.
+    # Place it between the headline and the terminal so it remains visible throughout the intro.
+    ax, ay = 696, 218
+    d.ellipse((ax-66, ay-66, ax+66, ay+66), fill=(10, 35, 42, 245), outline=(85, 230, 177, 210), width=3)
+    d.ellipse((ax-52, ay-52, ax+52, ay+52), outline=(112, 167, 255, 100), width=2)
+    # shoulders and shirt
+    d.rounded_rectangle((ax-39, ay+19, ax+39, ay+55), radius=18, fill=(28, 57, 76, 255), outline=(112, 167, 255, 230), width=2)
+    # neck and face
+    d.rounded_rectangle((ax-13, ay+7, ax+13, ay+34), radius=7, fill=(190, 125, 88, 255))
+    d.ellipse((ax-29, ay-38, ax+29, ay+25), fill=(207, 145, 104, 255), outline=(235, 181, 137, 255), width=1)
+    # hair silhouette
+    d.pieslice((ax-31, ay-44, ax+31, ay+2), start=180, end=360, fill=(27, 25, 28, 255))
+    d.polygon([(ax-30, ay-15), (ax-25, ay-39), (ax-8, ay-47), (ax+12, ay-43), (ax+29, ay-27), (ax+20, ay-23), (ax+6, ay-31), (ax-10, ay-29)], fill=(27, 25, 28, 255))
+    # facial features
+    d.ellipse((ax-18, ay-8, ax-11, ay-2), fill=(30, 29, 29, 255))
+    d.ellipse((ax+11, ay-8, ax+18, ay-2), fill=(30, 29, 29, 255))
+    d.line((ax-18, ay-13, ax-10, ay-15), fill=(49, 35, 30, 255), width=2)
+    d.line((ax+10, ay-15, ax+18, ay-13), fill=(49, 35, 30, 255), width=2)
+    d.line((ax, ay-3, ax-3, ay+7, ax+3, ay+8), fill=(155, 91, 66, 255), width=2)
+    d.arc((ax-11, ay+5, ax+11, ay+19), start=10, end=170, fill=(95, 44, 42, 255), width=2)
+    d.rounded_rectangle((ax-53, ay+69, ax+53, ay+91), radius=10, fill=(8, 19, 27, 240), outline=(55, 133, 119, 220), width=1)
+    d.text((ax-43, ay+72), "AI AVATAR", font=font(12, True), fill=(*MINT, int(255*fade)))
     # Terminal panel
     d.rounded_rectangle((760, 170, 1177, 455), radius=12, fill=(9, 19, 27, 238), outline=(42, 77, 83, 255), width=2)
     d.ellipse((783, 190, 795, 202), fill=(255, 100, 110, 230))
