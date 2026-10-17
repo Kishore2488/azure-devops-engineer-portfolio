@@ -96,13 +96,28 @@ def draw_frame(t):
     photo_path = Path("assets/kishore-photo.jpg")
     if not photo_path.is_file():
         raise SystemExit("Missing assets/kishore-photo.jpg; personal presenter cannot be rendered.")
-    photo = Image.open(photo_path).convert("RGB")
-    photo = ImageOps.fit(photo, (124, 124), method=Image.Resampling.LANCZOS, centering=(0.5, 0.34))
     mask = Image.new("L", (124, 124), 0)
     ImageDraw.Draw(mask).ellipse((0, 0, 123, 123), fill=255)
-    # Subtle dark backing, then portrait and dual rings.
+    # Load the portrait defensively: a malformed image must never break the Pages build.
+    photo = None
+    if photo_path.is_file():
+        try:
+            with Image.open(photo_path) as source:
+                source.verify()
+            with Image.open(photo_path) as source:
+                photo = ImageOps.fit(source.convert("RGB"), (124, 124), method=Image.Resampling.LANCZOS, centering=(0.5, 0.34))
+        except (OSError, ValueError) as exc:
+            print(f"Warning: presenter photo is invalid ({exc}); using a clean illustrated fallback.")
+    # Subtle dark backing, then portrait or a fallback illustration.
     d.ellipse((ax-70, ay-70, ax+70, ay+70), fill=(10, 35, 42, 245), outline=(85, 230, 177, 220), width=3)
-    img.paste(photo, (ax-62, ay-62), mask)
+    if photo is not None:
+        img.paste(photo, (ax-62, ay-62), mask)
+    else:
+        # Reliable vector fallback while the photo asset is repaired.
+        d.ellipse((ax-48, ay-48, ax+48, ay+48), fill=(26, 49, 59, 255), outline=(112, 167, 255, 180), width=2)
+        d.ellipse((ax-20, ay-28, ax+20, ay+12), fill=(198, 151, 117, 255))
+        d.pieslice((ax-24, ay-34, ax+24, ay+10), 180, 360, fill=(28, 25, 28, 255))
+        d.rounded_rectangle((ax-34, ay+8, ax+34, ay+55), radius=20, fill=(26, 40, 62, 255))
     d = ImageDraw.Draw(img, "RGBA")
     d.ellipse((ax-64, ay-64, ax+64, ay+64), outline=(85, 230, 177, 240), width=3)
     d.ellipse((ax-69, ay-69, ax+69, ay+69), outline=(112, 167, 255, 110), width=2)
