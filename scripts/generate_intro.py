@@ -60,13 +60,14 @@ def draw_frame(t):
     fade = min(1.0, local / 0.6, (span - local) / 0.5)
     fade = max(0.0, fade)
     img = Image.new("RGB", (W, H), BG)
-    px = img.load()
-    # Soft, moving color fields and a restrained technical grid.
-    for y in range(0, H, 4):
-        for x in range(0, W, 4):
-            glow = max(0, 1 - math.sqrt(((x-(950 + 24*math.sin(t/4)))/560)**2 + ((y-150)/390)**2))
-            base = mix(BG, (13, 37, 43), glow * 0.68)
-            px[x:x+4, y:y+4] = base
+    # Soft, moving color field plus a restrained technical grid.
+    glow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    gd = ImageDraw.Draw(glow)
+    cx = 950 + int(24 * math.sin(t / 4))
+    for radius in range(620, 40, -30):
+        alpha = max(2, int(18 * (1 - radius / 680)))
+        gd.ellipse((cx-radius, 150-radius, cx+radius, 150+radius), fill=(13, 65, 62, alpha))
+    img = Image.alpha_composite(img.convert("RGBA"), glow).convert("RGB")
     d = ImageDraw.Draw(img, "RGBA")
     for x in range(0, W, 64):
         d.line((x, 0, x, H), fill=(85, 230, 177, 15), width=1)
@@ -86,7 +87,7 @@ def draw_frame(t):
     y = 203
     for idx, line in enumerate(scene["title"]):
         f = F_BIG if idx == 0 else F_TITLE
-        d.text((84, y + int((1-fade)*10)), line, font=f, fill=(*WHITE if idx == 0 else BLUE, int(255*fade)))
+        d.text((84, y + int((1-fade)*10)), line, font=f, fill=(*(WHITE if idx == 0 else BLUE), int(255*fade)))
         y += 75 if idx == 0 else 62
     d.text((88, y+12), scene["sub"], font=F_MED, fill=(*MUTED, int(255*fade)))
     # Terminal panel
