@@ -43,7 +43,7 @@ jobs:
       - name: Generate professional male narration
         shell: bash
         run: |
-          VOICEOVER="I'm Venkata Kishore Vusa, an Azure DevOps and Cloud Engineer based in Hyderabad. I build secure, repeatable delivery pipelines with GitHub Actions, quality gates, and environment approvals. Across Azure and AWS, I use Ansible to automate infrastructure and Docker with Kubernetes to deliver consistent workloads. I also support Microsoft Fabric release operations, validating workspace readiness and data synchronization before deployments. My focus is practical DevSecOps, clear troubleshooting, and reliable releases—not just moving code, but helping teams ship with confidence. Explore my projects, runbooks, and automation on GitHub. Let's build a safer path from code to production."
+          VOICEOVER="I'm Venkata Kishore Vusa, an Azure DevOps and Cloud Engineer based in Hyderabad, India. I enjoy turning complicated release processes into secure, repeatable workflows that help teams ship with confidence. My work focuses on GitHub Actions, YAML-based CI/CD pipelines, deployment approvals, and quality gates across development, testing, and production environments. I work across Azure and AWS, choosing automation and infrastructure as code to make environments more consistent and easier to maintain. Ansible is one of my favorite tools for reducing repetitive configuration tasks and making deployments predictable. I also work with Docker and Kubernetes concepts to package applications, manage rollouts, and improve operational consistency. On the Microsoft Fabric side, I support governed workspace deployments, secret management, and validation of data synchronization before release. Security is part of the delivery process, not an afterthought: I value least-privilege access, protected branches, secrets management, and practical DevSecOps checks. When a deployment fails, I focus on tracing the cause, communicating clearly, and documenting the fix so the team can learn from it. My portfolio includes hands-on examples for CI/CD, Ansible automation, container delivery, Fabric release operations, and security gates. I bring more than four years of experience and a continuous-learning mindset. Explore the projects and runbooks, review the workflow evidence, and connect with me if you're looking for an engineer who cares about reliable releases, cloud automation, and secure delivery. Let's build a safer path from code to production."
           if ! edge-tts --voice en-US-GuyNeural --rate=-4% --text "$VOICEOVER" --write-media build/narration.mp3; then
             echo "::warning::Neural male voice service was unavailable; using local synthetic male voice as fallback."
             espeak -v en+m3 -s 145 -w build/narration.wav "$VOICEOVER"
@@ -51,7 +51,7 @@ jobs:
           fi
           test -s build/narration.mp3
 
-      - name: Render 45-second cinematic intro
+      - name: Render 90-second cinematic intro
         run: |
           python scripts/generate_intro.py
           test -s _site/videos/kishore-intro.mp4
