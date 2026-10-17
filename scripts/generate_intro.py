@@ -1,33 +1,33 @@
 #!/usr/bin/env python3
-"""Render a 45-second portfolio intro video from programmatic motion graphics."""
+"""Render a 90-second portfolio intro video from programmatic motion graphics."""
 from pathlib import Path
 import math
 import subprocess
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
-W, H, FPS, SECONDS = 1280, 720, 24, 45
+W, H, FPS, SECONDS = 1280, 720, 24, 90
 OUT = Path("_site/videos/kishore-intro.mp4")
 AUDIO = Path("build/narration.mp3")
 OUT.parent.mkdir(parents=True, exist_ok=True)
 
 SCENES = [
-    {"start": 0, "end": 7, "eyebrow": "AZURE DEVOPS ENGINEER  /  HYDERABAD, INDIA",
+    {"start": 0, "end": 15, "eyebrow": "AZURE DEVOPS ENGINEER  /  HYDERABAD, INDIA",
      "title": ["Venkata Kishore", "Vusa"], "sub": "I automate the path from code to production.",
-     "chips": ["CLOUD", "AUTOMATION", "RELIABILITY"], "code": ["$ whoami", "Azure DevOps Engineer", "status: open to opportunities"]},
-    {"start": 7, "end": 14, "eyebrow": "CONTINUOUS DELIVERY",
+     "chips": ["CLOUD", "AUTOMATION", "RELIABILITY"], "code": ["$ whoami", "Azure DevOps Engineer", "status: open to opportunities", "focus: secure delivery"]},
+    {"start": 15, "end": 30, "eyebrow": "CONTINUOUS DELIVERY",
      "title": ["Build. Test.", "Ship with confidence."], "sub": "Reusable GitHub Actions workflows and secure CI/CD.",
      "chips": ["GITHUB ACTIONS", "YAML", "QUALITY GATES"], "code": ["git push origin main", "✓ lint + tests", "✓ security scan", "✓ release approval"]},
-    {"start": 14, "end": 21, "eyebrow": "CLOUD & INFRASTRUCTURE",
+    {"start": 30, "end": 45, "eyebrow": "CLOUD & INFRASTRUCTURE",
      "title": ["Cloud-native", "by design."], "sub": "Azure and AWS, with automation that scales.",
      "chips": ["AZURE", "AWS", "ANSIBLE"], "code": ["terraform plan", "ansible-playbook site.yml", "infra: repeatable"]},
-    {"start": 21, "end": 28, "eyebrow": "CONTAINERS & ORCHESTRATION",
+    {"start": 45, "end": 60, "eyebrow": "CONTAINERS & ORCHESTRATION",
      "title": ["Deploy consistently.", "Recover quickly."], "sub": "Docker images, Kubernetes workloads and practical runbooks.",
      "chips": ["DOCKER", "KUBERNETES", "AKS"], "code": ["kubectl rollout status deploy/app", "✓ readiness probes", "✓ rolling updates"]},
-    {"start": 28, "end": 35, "eyebrow": "DATA PLATFORM DELIVERY",
+    {"start": 60, "end": 75, "eyebrow": "DATA PLATFORM DELIVERY",
      "title": ["Microsoft Fabric", "release operations."], "sub": "Environment governance and data validation before deployment.",
      "chips": ["FABRIC", "KEY VAULT", "RBAC"], "code": ["validate workspace", "check table synchronization", "require approved deployment"]},
-    {"start": 35, "end": 45, "eyebrow": "SECURE AUTOMATION  /  DELIVERY OWNERSHIP",
+    {"start": 75, "end": 90, "eyebrow": "SECURE AUTOMATION  /  DELIVERY OWNERSHIP",
      "title": ["Engineering that", "moves teams forward."], "sub": "Explore the projects, pipelines and operational playbooks.",
      "chips": ["CI/CD", "DEVSECOPS", "OBSERVABILITY"], "code": ["4+ years of DevOps experience", "25% reliability improvement*", "40% less setup time*", "github.com/Kishore2488"]}
 ]
@@ -146,7 +146,7 @@ def main():
         "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-",
         "-i", str(AUDIO), "-t", str(SECONDS), "-vf", "format=yuv420p",
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
-        "-af", "apad=pad_dur=45", "-c:a", "aac", "-b:a", "128k",
+        "-af", "apad=pad_dur=90", "-c:a", "aac", "-b:a", "128k",
         "-movflags", "+faststart", str(OUT)
     ]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
