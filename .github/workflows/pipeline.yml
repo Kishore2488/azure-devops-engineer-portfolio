@@ -81,6 +81,9 @@ jobs:
         working-directory: projects/04-fabric-ops
         run: python validate.py sample.json
 
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
       - name: Validate deployment scripts and Kubernetes overlays
         run: |
           bash scripts/pre-deploy-check.sh
