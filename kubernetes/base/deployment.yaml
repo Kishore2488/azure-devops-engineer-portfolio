@@ -12,8 +12,18 @@ spec:
       labels:
         app: portfolio-api
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: api
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
           image: example.azurecr.io/portfolio-api:replace-me
           ports:
             - containerPort: 8080
