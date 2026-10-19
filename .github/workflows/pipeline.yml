@@ -172,9 +172,10 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
 
-      - name: Dependency review
+      - name: Dependency review (requires GitHub dependency graph)
         if: ${{ github.event_name == 'pull_request' }}
         uses: actions/dependency-review-action@v4
+        continue-on-error: true
 
   container:
     name: Build and publish container project
