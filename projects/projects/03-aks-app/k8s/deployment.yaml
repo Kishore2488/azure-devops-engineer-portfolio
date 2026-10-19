@@ -12,8 +12,17 @@ spec:
   template:
     metadata: {labels: {app: aks-demo}}
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: {type: RuntimeDefault}
       containers:
         - name: app
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
           image: ghcr.io/kishore2488/aks-demo:latest
           ports: [{containerPort: 8000}]
           resources:
