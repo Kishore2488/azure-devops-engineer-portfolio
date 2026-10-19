@@ -47,7 +47,9 @@ jobs:
 
       - name: Test FastAPI project
         working-directory: projects/01-cicd-fastapi-app
-        run: pytest -q
+        env:
+          PYTHONPATH: ${{ github.workspace }}/projects/01-cicd-fastapi-app
+        run: python -m pytest -q
 
       - name: Validate Microsoft Fabric release sample
         working-directory: projects/04-fabric-ops
@@ -74,6 +76,8 @@ jobs:
           errors = []
           checked = 0
           for page in pages:
+              if not page.is_file():
+                  continue
               parser = Links()
               parser.feed(page.read_text(encoding="utf-8"))
               for raw in parser.targets:
