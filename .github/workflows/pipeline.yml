@@ -1,0 +1,372 @@
+name: Master CI-CD Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: "Validate only, or manually request a cloud deployment"
+        required: true
+        type: choice
+        default: validate
+        options: [validate, dev, qa, uat, prd]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: master-pipeline-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  validate:
+    name: Repository and project validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: projects/01-cicd-fastapi-app/requirements.txt
+
+      - name: Install validation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r projects/01-cicd-fastapi-app/requirements.txt pytest httpx pyyaml ansible-core ansible-lint
+
+      - name: Validate YAML syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          files = sorted([*Path(".").rglob("*.yml"), *Path(".").rglob("*.yaml")])
+          errors = []
+          for path in files:
+              if ".git" in path.parts:
+                  continue
+              try:
+                  yaml.safe_load(path.read_text(encoding="utf-8"))
+                  print(f"PASS: {path}")
+              except Exception as exc:
+                  errors.append(f"{path}: {exc}")
+          if errors:
+              raise SystemExit("\n".join(errors))
+          print(f"Validated {len(files)} YAML files")
+          PY
+
+      - name: Check FastAPI project
+        working-directory: projects/01-cicd-fastapi-app
+        env:
+          PYTHONPATH: ${{ github.workspace }}/projects/01-cicd-fastapi-app
+        run: python -m pytest -q
+
+      - name: Validate Ansible playbook syntax
+        run: ansible-playbook -i projects/02-ansible-real-server/inventory/dev.ini projects/02-ansible-real-server/site.yml --syntax-check
+
+      - name: Lint Ansible project
+        run: ansible-lint projects/02-ansible-real-server
+
+      - name: Validate Microsoft Fabric release sample
+        working-directory: projects/04-fabric-ops
+        run: python validate.py sample.json
+
+      - name: Validate deployment scripts and Kubernetes overlays
+        run: |
+          bash scripts/pre-deploy-check.sh
+          if [ -d kubernetes/overlays ]; then
+            for overlay in kubernetes/overlays/*; do
+              [ -d "$overlay" ] || continue
+              echo "Validating $overlay"
+              kubectl kustomize "$overlay" >/dev/null
+            done
+          fi
+
+      - name: Validate Bicep template
+        if: ${{ hashFiles('azure/bicep/main.bicep') != '' }}
+        uses: azure/cli@v2
+        with:
+          inlineScript: az bicep build --file azure/bicep/main.bicep --stdout > /dev/null
+
+      - name: Check local HTML links and assets
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import urlsplit, unquote
+
+          root = Path(".").resolve()
+          generated_assets = {"videos/kishore-intro.mp4"}
+
+          class Links(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.targets = []
+              def handle_starttag(self, tag, attrs):
+                  for key, value in attrs:
+                      if key in {"href", "src"} and value:
+                          self.targets.append(value.strip())
+
+          pages = sorted([root / "index.html", root / "404.html", *root.glob("projects/**/index.html")])
+          errors = []
+          checked = 0
+          for page in pages:
+              if not page.is_file():
+                  continue
+              parser = Links()
+              parser.feed(page.read_text(encoding="utf-8"))
+              for raw in parser.targets:
+                  parsed = urlsplit(raw)
+                  if parsed.scheme or parsed.netloc or raw.startswith(("#", "data:")):
+                      continue
+                  path = unquote(parsed.path).lstrip("/")
+                  if not path or path in generated_assets:
+                      continue
+                  target = (page.parent / path).resolve()
+                  if target.is_dir():
+                      target = target / "index.html"
+                  checked += 1
+                  if not target.is_file():
+                      errors.append(f"{page.relative_to(root)} -> {raw}")
+          if errors:
+              raise SystemExit("\n".join(errors))
+          print(f"PASS: checked {len(pages)} HTML pages and {checked} local links/assets")
+          PY
+
+  security:
+    name: Secret, dependency and filesystem security scans
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+      - name: Dependency review
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/dependency-review-action@v4
+
+  container:
+    name: Build and publish container project
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect container project changes
+        id: changes
+        shell: bash
+        run: |
+          echo "publish=false" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            BEFORE="${{ github.event.before }}"
+            if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+              if git diff --name-only "$BEFORE" "${{ github.sha }}" | grep -q '^projects/03-aks-app/'; then
+                echo "publish=true" >> "$GITHUB_OUTPUT"
+              fi
+            fi
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        if: ${{ steps.changes.outputs.publish == 'true' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build container project
+        uses: docker/build-push-action@v6
+        with:
+          context: projects/03-aks-app
+          push: ${{ steps.changes.outputs.publish == 'true' }}
+          tags: ghcr.io/kishore2488/aks-demo:latest
+
+  publish-pages:
+    name: Build and deploy portfolio to GitHub Pages
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.target_environment == 'validate') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: github-pages
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install video build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak
+          python -m pip install --upgrade pip pillow edge-tts
+          mkdir -p build _site/videos
+
+      - name: Generate professional male narration
+        shell: bash
+        run: |
+          VOICEOVER="I'm Venkata Kishore Vusa, an Azure DevOps and Cloud Engineer based in Hyderabad, India. I turn complicated release processes into secure, repeatable workflows that help teams ship with confidence. My work includes GitHub Actions, YAML-based CI/CD pipelines, deployment approvals, and quality gates across development, testing, and production. Across Azure and AWS, I use automation and infrastructure as code to make environments consistent and maintainable. Ansible is one of my favorite tools for reducing repetitive configuration work and making deployments predictable. I also work with Docker and Kubernetes concepts to package applications, manage rollouts, and improve operational consistency. For Microsoft Fabric, I support governed workspace deployments, secrets management, and validation of data synchronization before releases. Security belongs inside the delivery process, not at the end. I value least-privilege access, protected branches, secure secrets, and practical DevSecOps checks. When deployments fail, I focus on finding the root cause, communicating clearly, and documenting the fix so the team can learn. My portfolio includes hands-on examples for CI/CD, Ansible automation, container delivery, Fabric release operations, and security gates. I bring more than four years of experience and a continuous-learning mindset. Explore my projects and runbooks, review the workflow evidence, and connect with me if you're looking for an engineer who cares about reliable releases, cloud automation, and secure delivery. Let's build a safer path from code to production."
+          if ! edge-tts --voice en-US-GuyNeural --rate=-4% --text "$VOICEOVER" --write-media build/narration.mp3; then
+            echo "::warning::Neural male voice service was unavailable; using local synthetic voice as fallback."
+            espeak -v en+m3 -s 145 -w build/narration.wav "$VOICEOVER"
+            ffmpeg -y -loglevel error -i build/narration.wav build/narration.mp3
+          fi
+          test -s build/narration.mp3
+
+      - name: Render portfolio intro video
+        run: |
+          python scripts/generate_intro.py
+          test -s _site/videos/kishore-intro.mp4
+          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 _site/videos/kishore-intro.mp4
+
+      - name: Prepare static site
+        run: |
+          cp index.html 404.html styles.css script.js _site/
+          cp -r projects _site/
+
+      - name: Validate Pages artifact
+        run: |
+          test -s _site/index.html
+          test -s _site/404.html
+          test -s _site/styles.css
+          test -s _site/script.js
+          test -s _site/videos/kishore-intro.mp4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  cloud-deploy:
+    name: Optional Azure AKS deployment
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_environment != 'validate' && vars.AZURE_OIDC_CONFIGURED == 'true' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    environment: ${{ inputs.target_environment }}
+    env:
+      TARGET_ENV: ${{ inputs.target_environment }}
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION || 'eastus' }}
+      AKS_RESOURCE_GROUP: ${{ vars.AKS_RESOURCE_GROUP }}
+      AKS_CLUSTER_NAME: ${{ vars.AKS_CLUSTER_NAME }}
+      CONTAINER_IMAGE: ${{ vars.CONTAINER_IMAGE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Sign in to Azure using OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy infrastructure
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az deployment group create \
+              --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+              --template-file azure/bicep/main.bicep \
+              --parameters environment="$TARGET_ENV" location="$AZURE_LOCATION" keyVaultName="${{ vars.KEY_VAULT_NAME }}"
+
+      - name: Connect to target AKS
+        uses: azure/aks-set-context@v4
+        with:
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+
+      - name: Deploy environment overlay
+        run: |
+          kubectl apply -k "kubernetes/overlays/$TARGET_ENV"
+          kubectl set image "deployment/$TARGET_ENV-portfolio-api" api="$CONTAINER_IMAGE"
+          kubectl rollout status "deployment/$TARGET_ENV-portfolio-api" --timeout=180s
+          bash scripts/post-deploy-check.sh
+
+  cloud-deploy-not-configured:
+    name: Azure deployment setup required
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_environment != 'validate' && vars.AZURE_OIDC_CONFIGURED != 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain deployment is gated
+        run: |
+          echo "::notice::Cloud deployment was not started. Configure the Azure federated identity and repository/environment variable AZURE_OIDC_CONFIGURED=true to enable it."
+          echo "No Azure credentials or service-principal secrets are created by this workflow."
+
+  release:
+    name: Publish versioned GitHub Release
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate semantic version tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Expected a semantic version tag such as v1.0.0; got $RELEASE_TAG"
+            exit 1
+          fi
+
+      - name: Create release notes and GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          make_latest: true
