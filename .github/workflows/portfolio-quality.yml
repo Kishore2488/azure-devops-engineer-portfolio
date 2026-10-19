@@ -63,6 +63,10 @@ jobs:
           from urllib.parse import urlsplit, unquote
 
           ROOT = Path(".").resolve()
+          # The Pages workflow generates this video during site build; it is
+          # intentionally not committed as a source asset.
+          GENERATED_ASSETS = {"videos/kishore-intro.mp4"}
+
           class Links(HTMLParser):
               def __init__(self):
                   super().__init__()
@@ -84,8 +88,10 @@ jobs:
                   parsed = urlsplit(raw)
                   if parsed.scheme or parsed.netloc or raw.startswith(("#", "data:")):
                       continue
-                  path = unquote(parsed.path)
+                  path = unquote(parsed.path).lstrip("/")
                   if not path:
+                      continue
+                  if path in GENERATED_ASSETS:
                       continue
                   target = (page.parent / path).resolve()
                   if target.is_dir():
